@@ -1,5 +1,7 @@
 # pt1000-get-temperature
-Resistance temperature comparison table of PT1000 temperature sensor
+
+Resistance temperature comparison table of PT1000 temperature sensor .
+Embedded system development, obtain temperature through thermistor .
 
 usage:
 
