@@ -56,7 +56,25 @@ int get_temperature(int resistance, TempResistance_T * pTR,int count,int start, 
 	return i;//return index
 }
 
-#define FIND_RANGE 10
+int pt1000_check_limit(int resistance, void* pTemp)
+{
+	char* p = (char*)pTemp;
+	if (resistance <= PT1000_LOW_LIMIT_RESISTANCE)
+	{
+		p[0] = PT1000_LOW_LIMIT_TEMPERATURE;
+		p[1] = 0;
+		return 1;
+	}
+
+	if (resistance >= PT1000_HIGH_LIMIT_RESISTANCE)
+	{
+		p[0] = PT1000_HIGH_LIMIT_TEMPERATURE;
+		p[1] = 0;
+		return 2;
+	}
+	return 0;
+}
+
 int often_index = 80;//30 C
 
 int pt1000_get_temperature(int resistance, void* pTemp)
@@ -65,6 +83,8 @@ int pt1000_get_temperature(int resistance, void* pTemp)
 	int start;
 	int end;
 	int count = PT1000_TEMP_RESISTANCE_COUNT;
+
+	if (pt1000_check_limit(resistance, pTemp)) return -1;
 
 	if (often_index < FIND_RANGE) often_index = FIND_RANGE; //check often index
 	if ((often_index + FIND_RANGE) > count) often_index = count - FIND_RANGE;
