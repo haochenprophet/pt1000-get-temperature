@@ -2,6 +2,8 @@
 #ifndef RESISTANCE_TEMPERATURE_H
 #define RESISTANCE_TEMPERATURE_H
 
+#define GET_TEMP_TEST 1
+
 //Resistance temperature comparison struct
 typedef struct TempResistance
 {
@@ -22,6 +24,9 @@ inline int calculate_temperature_offset(int resistance, int lower, int upper);
 int get_temperature(int resistance, TempResistance_T* pTR, int count, int start, int end, void* pTemp);
 int pt1000_check_limit(int resistance, void* pTemp);
 int pt1000_get_temperature(int resistance, void* pTemp);
+
+#if GET_TEMP_TEST
 void test_get_temp();
+#endif
 
 #endif//RESISTANCE_TEMPERATURE_H

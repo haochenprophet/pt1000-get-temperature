@@ -84,7 +84,7 @@ int pt1000_get_temperature(int resistance, void* pTemp)
 	int end;
 	int count = PT1000_TEMP_RESISTANCE_COUNT;
 
-	if (pt1000_check_limit(resistance, pTemp)) return -1;
+	if (pt1000_check_limit(resistance, pTemp)) return -1;//limit temp is setting
 
 	if (often_index < FIND_RANGE) often_index = FIND_RANGE; //check often index
 	if ((often_index + FIND_RANGE) > count) often_index = count - FIND_RANGE;
@@ -127,7 +127,7 @@ int pt1000_get_temperature(int resistance, void* pTemp)
 	return ret_index;
 }
 
-
+#if GET_TEMP_TEST
 void test_get_temp() //test ok
 {
 	char buffer[2];
@@ -160,6 +160,15 @@ void test_get_temp() //test ok
 	pt1000_get_temperature(resistance, (void*)buffer);
 	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=0,buffer[1]=0
 	
+	resistance = 14606;//high limit
+	pt1000_get_temperature(resistance, (void*)buffer);
+	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=120,buffer[1]=0
+
+	resistance = 100;//low limit
+	pt1000_get_temperature(resistance, (void*)buffer);
+	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=-50,buffer[1]=0
+
 }
+#endif //GET_TEMP_TEST
 
 #endif//RESISTANCE_TEMPERATURE_C
