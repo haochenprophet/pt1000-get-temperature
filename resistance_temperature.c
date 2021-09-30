@@ -56,7 +56,7 @@ int get_temperature(int resistance, TempResistance_T * pTR,int count,int start, 
 	return i;//return index
 }
 
-int pt1000_check_limit(int resistance, void* pTemp)
+inline int pt1000_check_limit(int resistance, void* pTemp)
 {
 	char* p = (char*)pTemp;
 	if (resistance <= PT1000_LOW_LIMIT_RESISTANCE)
