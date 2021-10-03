@@ -15,44 +15,61 @@ inline int calculate_temperature_offset(int resistance, int lower, int upper)
 	return distance / step;
 }
 
-int get_temperature(int resistance, TempResistance_T * pTR,int count,int start, int end,void * pTemp)
+int check_and_set_temp(int resistance, TempResistance_T* pTR, int i, void* pTemp) //i:index of resistance_temperature_table 
 {
-	int i,offset;
+	int offset;
 	char* p = (char*)pTemp;
+	//case 1:
+	if ((i - 1) >= 0 && resistance < pTR[i].lower && resistance > pTR[i - 1].upper)
+	{
+		p[0] = (char)pTR[i].temperature;
+		p[1] = 0;
+		return 1;
+	}
+	//case 2:
+	if (resistance >= pTR[i].lower && resistance <= pTR[i].upper)
+	{
+		p[0] = (char)pTR[i].temperature;
+		offset = calculate_temperature_offset(resistance, pTR[i].lower, pTR[i].upper);
+
+		if (pTR[i].temperature >= 100)
+		{
+			p[0] += offset;
+			p[1] = 0;
+		}
+		else
+		{
+			p[0] += (offset / 10);
+			p[1] = (offset % 10);
+		}
+
+		return 1;
+	}
+	return 0;
+}
+int get_temperature(int resistance, TempResistance_T * pTR,int count,int start, int end,void * pTemp,int direction)
+{
+	int i;
 
 	if (start < 0) start = 0; //check start index
-
-	for (i = start; i < count&&i<end; i++)
+	if (end > count) end = count;//check end
+	//printf("direction=%d\n", direction);//test ok
+	if (direction == 0) //search from start to end
 	{
-		//case 1:
-		if ((i - 1) >= 0&&resistance < pTR[i].lower && resistance > pTR[i-1].upper)
+		for (i = start; i < count && i < end; i++)
 		{
-			p[0] = (char)pTR[i].temperature;
-			p[1] = 0;
-			break;
+			if (1 == check_and_set_temp(resistance, pTR, i, pTemp)) break;
 		}
-		//case 2:
-		if (resistance >= pTR[i].lower && resistance <= pTR[i].upper)
-		{
-			p[0] =(char) pTR[i].temperature;
-			offset = calculate_temperature_offset(resistance, pTR[i].lower, pTR[i].upper);
-			
-			if (pTR[i].temperature >= 100)
-			{
-				p[0] += offset;
-				p[1] = 0;
-			}
-			else
-			{
-				p[0] += (offset / 10);
-				p[1] = (offset%10);
-			}
-
-			break;
-		}
+		if (i >= count || i >= end) return -1;//not find
 	}
-
-	if (i >= count || i >= end) return -1;//not find
+	else  //search from end-1 to start
+	{
+		for (i = end-1; i >=0 && i >= start; i--)
+		{
+			if (1 == check_and_set_temp(resistance, pTR, i, pTemp)) break;
+		}
+		if (i < 0 || i < start) return -1;//not find
+	}
 	return i;//return index
 }
 
@@ -75,56 +92,34 @@ inline int pt1000_check_limit(int resistance, void* pTemp)
 	return 0;
 }
 
-int often_index = 80;//30 C
+int often_index = INIT_OFTEN_INDEX;//30 C
 
 int pt1000_get_temperature(int resistance, void* pTemp)
 {
-	int ret_index;
-	int start;
-	int end;
+	int ret_index=0, start, end;
 	int count = PT1000_TEMP_RESISTANCE_COUNT;
 
 	if (pt1000_check_limit(resistance, pTemp)) return -1;//limit temp is setting
 
-	if (often_index < FIND_RANGE) often_index = FIND_RANGE; //check often index
-	if ((often_index + FIND_RANGE) > count) often_index = count - FIND_RANGE;
+	if (1 == check_and_set_temp(resistance, pt1000_temp_resistance, often_index, pTemp)) return often_index; //found data in often index
 
-	start = often_index - FIND_RANGE;
-	end = often_index + FIND_RANGE;
-
-	ret_index =get_temperature(resistance, pt1000_temp_resistance, count, start, end, pTemp);
-	if (ret_index >= 0)//Already found temp
+	if (resistance > pt1000_temp_resistance[often_index].upper)//Find UP
 	{
-		if(ret_index>= FIND_RANGE) often_index = ret_index;
-	}
-	else//Not found temp ,Find up 
-	{
-		start = often_index + FIND_RANGE; 
+		start = often_index + 1;
 		end = count;
-		ret_index = get_temperature(resistance, pt1000_temp_resistance, count, start, end, pTemp);
-
-		if (ret_index >= 0)//Already found temp up
-		{
-			if (ret_index >= FIND_RANGE) often_index = ret_index;
-		}
-		else//Not found temp ,Find Down
-		{
-			start = 0;
-			end= often_index - FIND_RANGE;
-			ret_index = get_temperature(resistance, pt1000_temp_resistance, count, start, end, pTemp);
-
-			if (ret_index >= 0)//Already found temp up
-			{
-				if (ret_index >= FIND_RANGE) often_index = ret_index;
-			}
-			else
-			{
-				return -1;//not find 
-			}
-		}
+		ret_index = get_temperature(resistance, pt1000_temp_resistance, count, start, end, pTemp, FIND_DIRECTION_INC);
+	}
+	
+	if (resistance < pt1000_temp_resistance[often_index].lower)//Find Down
+	{
+		end = often_index;
+		start = 0;
+		ret_index = get_temperature(resistance, pt1000_temp_resistance, count, start, end, pTemp, FIND_DIRECTION_DEC);
 	}
 
-	return ret_index;
+	if (ret_index > 0&& ret_index<(count-2)) often_index = ret_index;
+	//printf("often_index=%d\n", often_index);
+	return ret_index; //not found;
 }
 
 #if GET_TEMP_TEST
@@ -132,9 +127,13 @@ void test_get_temp() //test ok
 {
 	char buffer[2];
 	char data[5][2];
-	int resistance = 11832;//47.2 C
+	int resistance = 8039;//-49.1 C
 	pt1000_get_temperature(resistance, (void*)buffer);
-	printf("buffer[0]=%d,buffer[1]=%d\n",(int) buffer[0],(int) buffer[1]); //output: buffer[0]=47,buffer[1]=2
+	printf("buffer[0]=%d,buffer[1]=%d\n",(int) buffer[0],(int) buffer[1]); //output: buffer[0]=-49,buffer[1]=1
+
+    resistance = 11832;//47.2 C
+	pt1000_get_temperature(resistance, (void*)buffer);
+	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=47,buffer[1]=2
 
 	resistance = 11705;//44C
 	pt1000_get_temperature(resistance, (void*)buffer);

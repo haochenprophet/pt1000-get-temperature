@@ -13,7 +13,9 @@ typedef struct TempResistance
 }TempResistance_T;
 
 #define FIND_RANGE 10
-
+#define INIT_OFTEN_INDEX 80  //30 C
+#define FIND_DIRECTION_INC   0
+#define FIND_DIRECTION_DEC  1
 #define PT1000_LOW_LIMIT_RESISTANCE   8030 //-50 C
 #define PT1000_LOW_LIMIT_TEMPERATURE  -50
 
