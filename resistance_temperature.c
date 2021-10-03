@@ -169,21 +169,21 @@ void test_get_temp() //test ok
 	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=-50,buffer[1]=0
 	//while (1)
 	{
-	resistance = 8800;//low limit
+	resistance = 8800;
 	pt1000_get_temperature(resistance, (void*)data[0]);
-	printf("8800:data[0][0]=%d,%d,data[0][1]=%d\n", (int)data[0][0], (unsigned char)data[0][0], (int)data[0][1]); //output: buffer[0]=-50,buffer[1]=0
+	printf("8800:data[0][0]=%d,%d,data[0][1]=%d\n", (int)data[0][0], (unsigned char)data[0][0], (int)data[0][1]); 
 
-	resistance = 9410;//low limit
+	resistance = 9410;
 	pt1000_get_temperature(resistance, (void*)data[1]);
-	printf("9410:data[1][0]=%d,0x%02X,data[1][1]=%d\n", (int)data[1][0], (unsigned char)data[1][0], (int)data[1][1]); //output: buffer[0]=-50,buffer[1]=0
+	printf("9410:data[1][0]=%d,0x%02X,data[1][1]=%d\n", (int)data[1][0], (unsigned char)data[1][0], (int)data[1][1]); 
 	
-	resistance = 9450;//low limit
+	resistance = 9450;
 	pt1000_get_temperature(resistance, (void*)data[2]);
-	printf("9450:data[2][0]=%d,%d,data[2][1]=%d\n", (int)data[2][0], (unsigned char)data[2][0], (int)data[2][1]); //output: buffer[0]=-50,buffer[1]=0
+	printf("9450:data[2][0]=%d,%d,data[2][1]=%d\n", (int)data[2][0], (unsigned char)data[2][0], (int)data[2][1]); 
 
-	resistance = 13760;//low limit
+	resistance = 13760;
 	pt1000_get_temperature(resistance, (void*)data[3]);
-	printf("13760:data[3][0]=%d,0x%02X,data[3][1]=%d\n", (int)data[3][0], (unsigned char)data[3][0], (int)data[3][1]); //output: buffer[0]=-50,buffer[1]=0
+	printf("13760:data[3][0]=%d,0x%02X,data[3][1]=%d\n", (int)data[3][0], (unsigned char)data[3][0], (int)data[3][1]); 
 	}
 }
 #endif //GET_TEMP_TEST
