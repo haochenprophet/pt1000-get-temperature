@@ -37,7 +37,7 @@ int get_temperature(int resistance, TempResistance_T * pTR,int count,int start, 
 			p[0] =(char) pTR[i].temperature;
 			offset = calculate_temperature_offset(resistance, pTR[i].lower, pTR[i].upper);
 			
-			if (p[0] >= 100)
+			if (pTR[i].temperature >= 100)
 			{
 				p[0] += offset;
 				p[1] = 0;
@@ -131,7 +131,7 @@ int pt1000_get_temperature(int resistance, void* pTemp)
 void test_get_temp() //test ok
 {
 	char buffer[2];
-
+	char data[5][2];
 	int resistance = 11832;//47.2 C
 	pt1000_get_temperature(resistance, (void*)buffer);
 	printf("buffer[0]=%d,buffer[1]=%d\n",(int) buffer[0],(int) buffer[1]); //output: buffer[0]=47,buffer[1]=2
@@ -167,7 +167,24 @@ void test_get_temp() //test ok
 	resistance = 100;//low limit
 	pt1000_get_temperature(resistance, (void*)buffer);
 	printf("buffer[0]=%d,buffer[1]=%d\n", (int)buffer[0], (int)buffer[1]); //output: buffer[0]=-50,buffer[1]=0
+	//while (1)
+	{
+	resistance = 8800;//low limit
+	pt1000_get_temperature(resistance, (void*)data[0]);
+	printf("8800:data[0][0]=%d,%d,data[0][1]=%d\n", (int)data[0][0], (unsigned char)data[0][0], (int)data[0][1]); //output: buffer[0]=-50,buffer[1]=0
 
+	resistance = 9410;//low limit
+	pt1000_get_temperature(resistance, (void*)data[1]);
+	printf("9410:data[1][0]=%d,0x%02X,data[1][1]=%d\n", (int)data[1][0], (unsigned char)data[1][0], (int)data[1][1]); //output: buffer[0]=-50,buffer[1]=0
+	
+	resistance = 9450;//low limit
+	pt1000_get_temperature(resistance, (void*)data[2]);
+	printf("9450:data[2][0]=%d,%d,data[2][1]=%d\n", (int)data[2][0], (unsigned char)data[2][0], (int)data[2][1]); //output: buffer[0]=-50,buffer[1]=0
+
+	resistance = 13760;//low limit
+	pt1000_get_temperature(resistance, (void*)data[3]);
+	printf("13760:data[3][0]=%d,0x%02X,data[3][1]=%d\n", (int)data[3][0], (unsigned char)data[3][0], (int)data[3][1]); //output: buffer[0]=-50,buffer[1]=0
+	}
 }
 #endif //GET_TEMP_TEST
 
